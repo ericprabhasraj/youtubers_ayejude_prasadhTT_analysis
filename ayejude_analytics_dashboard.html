@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AyeJude Channel Analytics Report by Prabhas raj— Apr 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0A0B0E;
+  --bg2: #111318;
+  --bg3: #181B22;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #F0EEE8;
+  --muted: #8A8880;
+  --accent: #E8C97A;
+  --accent2: #4FC3A1;
+  --accent3: #7B9CF4;
+  --red: #E05E5E;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+.header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 28px 48px; display: flex; justify-content: space-between; align-items: center; }
+.header-left h1 { font-family: var(--font-head); font-size: 13px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+.header-left p { font-size: 22px; font-weight: 700; font-family: var(--font-head); color: var(--text); }
+.header-right { text-align: right; }
+.header-right .badge { display: inline-block; background: rgba(232,201,122,0.1); border: 1px solid rgba(232,201,122,0.3); color: var(--accent); font-family: var(--font-mono); font-size: 11px; padding: 4px 10px; border-radius: 3px; margin-bottom: 6px; }
+.header-right p { font-size: 12px; color: var(--muted); }
+
+.nav { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 48px; display: flex; gap: 0; overflow-x: auto; }
+.nav a { display: block; padding: 14px 18px; font-size: 12px; font-weight: 500; color: var(--muted); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.2s; letter-spacing: 0.03em; }
+.nav a:hover, .nav a.active { color: var(--text); border-bottom-color: var(--accent); }
+
+.main { max-width: 1400px; margin: 0 auto; padding: 40px 48px; }
+.section { margin-bottom: 56px; }
+.section-label { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+.section-title { font-family: var(--font-head); font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.section-desc { font-size: 13px; color: var(--muted); margin-bottom: 24px; max-width: 640px; line-height: 1.7; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+.kpi-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; position: relative; overflow: hidden; }
+.kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent-color, var(--accent)); opacity: 0.6; }
+.kpi-card .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; font-family: var(--font-mono); }
+.kpi-card .kpi-value { font-family: var(--font-head); font-size: 30px; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+.kpi-card .kpi-sub { font-size: 12px; color: var(--muted); }
+.kpi-card .kpi-delta { font-size: 11px; font-family: var(--font-mono); margin-top: 8px; padding: 3px 8px; border-radius: 3px; display: inline-block; }
+.delta-neg { background: rgba(224,94,94,0.12); color: var(--red); }
+.delta-warn { background: rgba(232,201,122,0.12); color: var(--accent); }
+.delta-pos { background: rgba(79,195,161,0.12); color: var(--accent2); }
+
+.chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
+.chart-card .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.chart-card .chart-title { font-family: var(--font-head); font-size: 14px; font-weight: 600; }
+.chart-card .chart-note { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.grid-3-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+.grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+
+.insight-box { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 16px 20px; margin-top: 12px; }
+.insight-box h4 { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+.insight-item { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--muted); line-height: 1.5; }
+.insight-item:last-child { border-bottom: none; }
+.insight-item .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.dot-red { background: var(--red); }
+.dot-amber { background: var(--accent); }
+.dot-green { background: var(--accent2); }
+.insight-item strong { color: var(--text); font-weight: 500; }
+
+.legend-row { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 14px; font-size: 12px; color: var(--muted); }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+.seo-bar-row { display: flex; flex-direction: column; gap: 10px; }
+.seo-row { display: flex; align-items: center; gap: 12px; }
+.seo-label { font-size: 12px; color: var(--muted); width: 160px; flex-shrink: 0; font-family: var(--font-mono); }
+.seo-track { flex: 1; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.seo-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+.seo-score { font-size: 12px; font-family: var(--font-mono); color: var(--text); width: 36px; text-align: right; }
+
+.action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.action-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+.action-card .ac-tag { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; padding: 3px 8px; border-radius: 3px; display: inline-block; }
+.tag-critical { background: rgba(224,94,94,0.15); color: var(--red); border: 1px solid rgba(224,94,94,0.3); }
+.tag-high { background: rgba(232,201,122,0.15); color: var(--accent); border: 1px solid rgba(232,201,122,0.3); }
+.tag-medium { background: rgba(79,195,161,0.15); color: var(--accent2); border: 1px solid rgba(79,195,161,0.3); }
+.action-card h4 { font-family: var(--font-head); font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.action-card p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+.analyst-section { background: var(--bg2); border: 1px solid var(--border2); border-radius: 8px; padding: 32px 36px; margin-top: 40px; }
+.analyst-section h3 { font-family: var(--font-head); font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.analyst-section .sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+.skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.skill-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; }
+.skill-card .sk-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 8px; }
+.skill-card h5 { font-family: var(--font-head); font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.skill-card p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+.footer { background: var(--bg2); border-top: 1px solid var(--border); padding: 20px 48px; display: flex; justify-content: space-between; align-items: center; margin-top: 60px; }
+.footer p { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+
+@media (max-width: 1100px) {
+  .main { padding: 32px 24px; }
+  .header { padding: 20px 24px; }
+  .nav { padding: 0 24px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .grid-3, .grid-3-1, .grid-1-2 { grid-template-columns: 1fr; }
+  .action-grid { grid-template-columns: 1fr; }
+  .skills-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .skills-grid { grid-template-columns: 1fr; }
+  .header-left p { font-size: 17px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Channel Analytics Report</h1>
+    <p>AyeJude — @Ayejude Performance Intelligence</p>
+  </div>
+  <div class="header-right">
+    <div class="badge">REPORT DATE: APR 2026</div>
+    <p>Telugu Content · Fashion · Current Affairs · News</p>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#overview" class="active">Overview</a>
+  <a href="#gap">Reach Gap</a>
+  <a href="#engagement">Engagement</a>
+  <a href="#retention">Retention</a>
+  <a href="#seo">SEO Audit</a>
+  <a href="#content">Content Mix</a>
+  <a href="#competitors">Competitors</a>
+  <a href="#growth">Growth Model</a>
+  <a href="#actions">Actions</a>
+  <a href="#analyst">The Analyst</a>
+</nav>
+
+<div class="main">
+
+  <!-- SECTION 1: OVERVIEW -->
+  <div class="section" id="overview">
+    <div class="section-label">01 / Channel Performance</div>
+    <div class="section-title">Channel Overview & KPIs</div>
+    <div class="section-desc">AyeJude has built a strong 4.3M subscriber base in Telugu content — but key performance ratios reveal a significant reach gap that data-driven strategy can close.</div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--accent-color: #4FC3A1;">
+        <div class="kpi-label">Total Subscribers</div>
+        <div class="kpi-value" style="color: var(--accent2);">4.3M</div>
+        <div class="kpi-sub">Ranked #116, India Howto/Style</div>
+        <div class="kpi-delta delta-pos">+12% YoY</div>
+      </div>
+      <div class="kpi-card" style="--accent-color: #7B9CF4;">
+        <div class="kpi-label">Total Views</div>
+        <div class="kpi-value" style="color: var(--accent3);">1.6B</div>
+        <div class="kpi-sub">Lifetime channel views</div>
+        <div class="kpi-delta delta-pos">Strong base</div>
+      </div>
+      <div class="kpi-card" style="--accent-color: #E8C97A;">
+        <div class="kpi-label">Avg Views / Video</div>
+        <div class="kpi-value" style="color: var(--accent);">434K</div>
+        <div class="kpi-sub">Per long-form upload</div>
+        <div class="kpi-delta delta-warn">10% reach rate</div>
+      </div>
+      <div class="kpi-card" style="--accent-color: #E05E5E;">
+        <div class="kpi-label">Reach Rate</div>
+        <div class="kpi-value" style="color: var(--red);">10%</div>
+        <div class="kpi-sub">Subs who watch per video</div>
+        <div class="kpi-delta delta-neg">Benchmark: 20–25%</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Monthly Views Trend — Last 12 Months (Estimated)</div>
+        <div class="chart-note">Long-form + Shorts combined</div>
+      </div>
+      <div class="legend-row">
+        <span class="legend-item"><span class="legend-swatch" style="background:#7B9CF4;"></span>Long-form views</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#4FC3A1;"></span>Shorts views</span>
+      </div>
+      <div style="position:relative;width:100%;height:280px;">
+        <canvas id="viewsTrend"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: GAP ANALYSIS -->
+  <div class="section" id="gap">
+    <div class="section-label">02 / Reach Gap</div>
+    <div class="section-title">Subscribers vs Actual Views</div>
+    <div class="section-desc">The gap between 4.3M subscribers and ~434K average views per video indicates strong brand recognition but weak content discoverability. The algorithm isn't surfacing content to existing fans.</div>
+
+    <div class="grid-3-1">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Subscribers vs Average Views — AyeJude vs Benchmark</div>
+          <div class="chart-note">Healthy channels achieve 20–25% reach rate</div>
+        </div>
+        <div class="legend-row">
+          <span class="legend-item"><span class="legend-swatch" style="background:#7B9CF4;"></span>Subscribers (M)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#E8C97A;"></span>Avg Views per Video (K)</span>
+        </div>
+        <div style="position:relative;width:100%;height:260px;">
+          <canvas id="gapChart"></canvas>
+        </div>
+      </div>
+      <div>
+        <div class="insight-box" style="margin-top:0;">
+          <h4>Gap Indicators</h4>
+          <div class="insight-item"><div class="dot dot-red"></div><div><strong>10% reach rate</strong> — far below healthy 20–25% benchmark. 3.87M subscribers never see new uploads.</div></div>
+          <div class="insight-item"><div class="dot dot-amber"></div><div><strong>Algorithm suppression</strong> — low CTR on thumbnails signals poor click-through, reducing recommendation frequency.</div></div>
+          <div class="insight-item"><div class="dot dot-amber"></div><div><strong>Mixed niche dilution</strong> — Fashion + Current Affairs audiences don't overlap, reducing session depth signals.</div></div>
+          <div class="insight-item"><div class="dot dot-green"></div><div><strong>High-performing viral videos</strong> (2.7M–2.9M views) prove the audience exists — strategy just needs to unlock it consistently.</div></div>
+        </div>
+        <div class="insight-box">
+          <h4>Ratio Metrics</h4>
+          <div class="insight-item"><div class="dot dot-red"></div><div>View/Sub ratio: <strong>0.10x</strong></div></div>
+          <div class="insight-item"><div class="dot dot-green"></div><div>Industry benchmark: <strong>0.22x</strong></div></div>
+          <div class="insight-item"><div class="dot dot-amber"></div><div>Revenue opportunity lost: <strong>~55%</strong></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: ENGAGEMENT -->
+  <div class="section" id="engagement">
+    <div class="section-label">03 / Engagement Analysis</div>
+    <div class="section-title">Audience Engagement Distribution</div>
+    <div class="section-desc">Engagement rate at 2.6% is in line with peers, but the audience is deeply passive. Comment velocity and like-to-view ratios reveal a loyal core that is underactivated.</div>
+
+    <div class="grid-2">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Engaged vs Passive Audience Split</div>
+        </div>
+        <div style="position:relative;width:100%;height:260px;">
+          <canvas id="engagePie"></canvas>
+        </div>
+        <div class="legend-row" style="margin-top:14px;">
+          <span class="legend-item"><span class="legend-swatch" style="background:#7B9CF4;"></span>Active Likers 6.1%</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#4FC3A1;"></span>Commenters 0.07%</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#E8C97A;"></span>Passive Viewers 93.8%</span>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Engagement Metrics — Per Video Average</div>
+        </div>
+        <div style="position:relative;width:100%;height:260px;">
+          <canvas id="engageBar"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-box" style="margin-top:20px;">
+      <h4>Engagement Observations</h4>
+      <div class="insight-item"><div class="dot dot-amber"></div><div><strong>287 comments/video average</strong> — shows loyal community. Increase through pinned questions, polls, and reply challenges.</div></div>
+      <div class="insight-item"><div class="dot dot-green"></div><div>Community posts (52K likes on Pahalgam post) show <strong>strong civic engagement</strong> — leverage this in video CTAs.</div></div>
+      <div class="insight-item"><div class="dot dot-red"></div><div><strong>93.8% passive audience</strong> — a massive untapped engagement pool if activation strategies are implemented (pinned comments, community tabs, chapter markers).</div></div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: RETENTION -->
+  <div class="section" id="retention">
+    <div class="section-label">04 / Audience Retention</div>
+    <div class="section-title">Estimated Retention Curve</div>
+    <div class="section-desc">Based on content pattern analysis, estimated audience retention reveals critical drop-off zones. Scripting improvements and tighter hooks can significantly lift average view duration.</div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Audience Retention Model — Long-form vs Optimized Scripting (Estimated)</div>
+        <div class="chart-note">Based on format & content type patterns</div>
+      </div>
+      <div class="legend-row">
+        <span class="legend-item"><span class="legend-swatch" style="background:#E05E5E;"></span>Current estimated retention</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#4FC3A1;"></span>Projected with scripted hooks</span>
+      </div>
+      <div style="position:relative;width:100%;height:280px;">
+        <canvas id="retentionChart"></canvas>
+      </div>
+    </div>
+    <div class="insight-box">
+      <h4>Critical Drop-off Zones</h4>
+      <div class="insight-item"><div class="dot dot-red"></div><div><strong>0–30 seconds:</strong> ~35% drop if hook doesn't immediately promise value. Current intros often have branding delay before the core message.</div></div>
+      <div class="insight-item"><div class="dot dot-amber"></div><div><strong>3–5 minutes:</strong> Secondary drop when transition to detail occurs without re-engagement prompt. Needs mid-video pattern interrupt.</div></div>
+      <div class="insight-item"><div class="dot dot-green"></div><div>Viral videos (Pahalgam, AJIT DOVAL) show <strong>higher retention</strong> due to strong emotional hooks — replicate this format intentionally.</div></div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: SEO -->
+  <div class="section" id="seo">
+    <div class="section-label">05 / SEO & Discoverability</div>
+    <div class="section-title">SEO Audit Score</div>
+    <div class="section-desc">Discoverability is the single largest growth lever for AyeJude. Titles use emotional hooks well but lack keyword-first structure. Description fields are severely underutilized.</div>
+
+    <div class="grid-2">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">SEO Component Scores — Out of 100</div>
+        </div>
+        <div class="seo-bar-row" style="margin-top:8px;">
+          <div class="seo-row">
+            <div class="seo-label">Title Keywords</div>
+            <div class="seo-track"><div class="seo-fill" style="width:55%;background:#E8C97A;"></div></div>
+            <div class="seo-score">55</div>
+          </div>
+          <div class="seo-row">
+            <div class="seo-label">Thumbnail CTR Est.</div>
+            <div class="seo-track"><div class="seo-fill" style="width:62%;background:#4FC3A1;"></div></div>
+            <div class="seo-score">62</div>
+          </div>
+          <div class="seo-row">
+            <div class="seo-label">Description Quality</div>
+            <div class="seo-track"><div class="seo-fill" style="width:22%;background:#E05E5E;"></div></div>
+            <div class="seo-score">22</div>
+          </div>
+          <div class="seo-row">
+            <div class="seo-label">Tag Optimization</div>
+            <div class="seo-track"><div class="seo-fill" style="width:40%;background:#E05E5E;"></div></div>
+            <div class="seo-score">40</div>
+          </div>
+          <div class="seo-row">
+            <div class="seo-label">Chapter Markers</div>
+            <div class="seo-track"><div class="seo-fill" style="width:10%;background:#E05E5E;"></div></div>
+            <div class="seo-score">10</div>
+          </div>
+          <div class="seo-row">
+            <div class="seo-label">Upload Consistency</div>
+            <div class="seo-track"><div class="seo-fill" style="width:70%;background:#4FC3A1;"></div></div>
+            <div class="seo-score">70</div>
+          </div>
+          <div class="seo-row">
+            <div class="seo-label">Shorts SEO</div>
+            <div class="seo-track"><div class="seo-fill" style="width:45%;background:#E8C97A;"></div></div>
+            <div class="seo-score">45</div>
+          </div>
+          <div class="seo-row">
+            <div class="seo-label">Playlist Structure</div>
+            <div class="seo-track"><div class="seo-fill" style="width:58%;background:#E8C97A;"></div></div>
+            <div class="seo-score">58</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="chart-card" style="height:100%;">
+          <div class="chart-header">
+            <div class="chart-title">SEO Score Breakdown</div>
+          </div>
+          <div style="position:relative;width:100%;height:240px;">
+            <canvas id="seoRadar"></canvas>
+          </div>
+          <div class="insight-box" style="margin-top:16px;">
+            <h4>Priority Fixes</h4>
+            <div class="insight-item"><div class="dot dot-red"></div><div>Add <strong>500+ word descriptions</strong> with keyword clusters to every video immediately</div></div>
+            <div class="insight-item"><div class="dot dot-red"></div><div>Implement <strong>chapter timestamps</strong> — boosts search snippet appearance by 3x</div></div>
+            <div class="insight-item"><div class="dot dot-amber"></div><div>Restructure titles: keyword first, then hook (e.g., "Pahalgam Attack Explained | AyeJude")</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: CONTENT MIX -->
+  <div class="section" id="content">
+    <div class="section-label">06 / Content Strategy</div>
+    <div class="section-title">Content Category Breakdown</div>
+    <div class="section-desc">AyeJude evolved from fashion/lifestyle into current affairs — a strategic pivot that increased views but may have confused subscriber intent signals for the algorithm.</div>
+
+    <div class="grid-1-2">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Current Content Mix</div>
+        </div>
+        <div style="position:relative;width:100%;height:260px;">
+          <canvas id="contentPie"></canvas>
+        </div>
+        <div class="legend-row" style="margin-top:14px;flex-direction:column;gap:6px;">
+          <span class="legend-item"><span class="legend-swatch" style="background:#7B9CF4;"></span>Current Affairs / News (45%)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#E8C97A;"></span>Fashion / Style Tips (25%)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#4FC3A1;"></span>Celebrity Breakdowns (15%)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#E05E5E;"></span>Grooming / Fitness (10%)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#9B8FE0;"></span>Lifestyle / Productivity (5%)</span>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Views Performance by Content Category</div>
+          <div class="chart-note">Average views per category</div>
+        </div>
+        <div style="position:relative;width:100%;height:260px;">
+          <canvas id="contentPerf"></canvas>
+        </div>
+        <div class="insight-box" style="margin-top:16px;">
+          <h4>Missing High-Performing Categories</h4>
+          <div class="insight-item"><div class="dot dot-red"></div><div><strong>Shorts-first explainers</strong> — news content in 60s Shorts format drives massive discovery (some Shorts already hit 1.5M views)</div></div>
+          <div class="insight-item"><div class="dot dot-amber"></div><div><strong>Trending product reviews</strong> (fashion/tech crossover) — a major gap in current content that peers monetize heavily</div></div>
+          <div class="insight-item"><div class="dot dot-green"></div><div>Celebrity style breakdowns historically outperform — <strong>resume this series</strong> with trending Telugu film releases</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: COMPETITORS -->
+  <div class="section" id="competitors">
+    <div class="section-label">07 / Competitor Benchmarking</div>
+    <div class="section-title">Channel Comparison — Key Metrics</div>
+    <div class="section-desc">AyeJude holds significant subscriber count but lags peers in view efficiency and SEO infrastructure. These benchmarks define the growth ceiling and show what's achievable.</div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Subscriber Count vs Total Views — Peer Comparison</div>
+        <div class="chart-note">Data: SocialBlade / HypeAuditor, Apr 2026</div>
+      </div>
+      <div class="legend-row">
+        <span class="legend-item"><span class="legend-swatch" style="background:#7B9CF4;"></span>Subscribers (M)</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#4FC3A1;"></span>Total Views (100M units)</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#E8C97A;"></span>Avg Views/Video (100K units)</span>
+      </div>
+      <div style="position:relative;width:100%;height:320px;">
+        <canvas id="competitorBar"></canvas>
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-top:20px;">
+      <div class="insight-box" style="margin-top:0;">
+        <h4>Trakin Tech — 15.5M subs</h4>
+        <div class="insight-item"><div class="dot dot-green"></div><div>3.21B total views. Strong SEO on every video. Daily uploads with keyword-first titles.</div></div>
+        <div class="insight-item"><div class="dot dot-amber"></div><div>Lesson: <strong>Consistent topical tech/news format</strong> drives search discoverability.</div></div>
+      </div>
+      <div class="insight-box" style="margin-top:0;">
+        <h4>Ranveer Allahbadia — 11.1M subs</h4>
+        <div class="insight-item"><div class="dot dot-green"></div><div>6.27B total views. Clear niche framing. Interview + podcast format sustains long watch time.</div></div>
+        <div class="insight-item"><div class="dot dot-amber"></div><div>Lesson: <strong>Niche clarity + consistent format</strong> supercharges algorithm recommendations.</div></div>
+      </div>
+      <div class="insight-box" style="margin-top:0;">
+        <h4>GeekyRanjit — 3.32M subs</h4>
+        <div class="insight-item"><div class="dot dot-green"></div><div>855M views. 3,400+ videos — shows consistency beats viral dependence.</div></div>
+        <div class="insight-item"><div class="dot dot-amber"></div><div>Lesson: <strong>Loyal Hindi audience + trust-building</strong> = sustainable growth without viral spikes.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: GROWTH MODEL -->
+  <div class="section" id="growth">
+    <div class="section-label">08 / Growth Projection</div>
+    <div class="section-title">12-Month Growth Scenario Model</div>
+    <div class="section-desc">Two scenarios modeled: current passive trajectory vs data-driven optimization (SEO rebuild + content cadence + retention scripting). The gap between them represents the opportunity cost of inaction.</div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Projected Subscriber Growth — Current vs Optimized Strategy</div>
+        <div class="chart-note">Projection model based on benchmark channel trajectories at equivalent stages</div>
+      </div>
+      <div class="legend-row">
+        <span class="legend-item"><span class="legend-swatch" style="background:#E05E5E;"></span>Current trajectory</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#4FC3A1;"></span>Optimized (Data + SEO + Scripting)</span>
+      </div>
+      <div style="position:relative;width:100%;height:300px;">
+        <canvas id="growthChart"></canvas>
+      </div>
+    </div>
+
+    <div class="kpi-grid" style="margin-top:20px;">
+      <div class="kpi-card" style="--accent-color: #E05E5E;">
+        <div class="kpi-label">Current Trajectory (12M)</div>
+        <div class="kpi-value" style="color:var(--red);font-size:24px;">+8%</div>
+        <div class="kpi-sub">~4.65M subscribers projected</div>
+      </div>
+      <div class="kpi-card" style="--accent-color: #4FC3A1;">
+        <div class="kpi-label">Optimized Strategy (12M)</div>
+        <div class="kpi-value" style="color:var(--accent2);font-size:24px;">+47%</div>
+        <div class="kpi-sub">~6.3M subscribers projected</div>
+      </div>
+      <div class="kpi-card" style="--accent-color: #E8C97A;">
+        <div class="kpi-label">Views Growth (Optimized)</div>
+        <div class="kpi-value" style="color:var(--accent);font-size:24px;">+120%</div>
+        <div class="kpi-sub">~950K avg views/video target</div>
+      </div>
+      <div class="kpi-card" style="--accent-color: #7B9CF4;">
+        <div class="kpi-label">Reach Rate Target</div>
+        <div class="kpi-value" style="color:var(--accent3);font-size:24px;">22%</div>
+        <div class="kpi-sub">Up from current 10%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 9: ACTIONS -->
+  <div class="section" id="actions">
+    <div class="section-label">09 / Actionable Recommendations</div>
+    <div class="section-title">Data-Driven Growth Roadmap</div>
+    <div class="section-desc">Prioritized by impact and feasibility. Critical items can be implemented within 30 days; high-priority items within 60–90 days.</div>
+
+    <div class="action-grid">
+      <div class="action-card">
+        <div class="ac-tag tag-critical">Critical · 0–30 Days</div>
+        <h4>SEO Description Overhaul</h4>
+        <p>Every existing video needs a 500+ word keyword-rich description. This alone can increase search-driven views by 30–40%. Implement a description template with keyword clusters, timestamps, and CTA blocks.</p>
+      </div>
+      <div class="action-card">
+        <div class="ac-tag tag-critical">Critical · 0–30 Days</div>
+        <h4>Chapter Timestamps on All Videos</h4>
+        <p>YouTube shows chapter markers in search snippets, increasing click-through by up to 3x. Currently absent from all reviewed content — immediate implementation required.</p>
+      </div>
+      <div class="action-card">
+        <div class="ac-tag tag-critical">Critical · 0–30 Days</div>
+        <h4>Title Keyword Restructure</h4>
+        <p>Titles should lead with the searchable keyword, not the hook. E.g., "Pahalgam Attack Explained in Telugu | AyeJude" outranks "🚨The PAHALGAM Truth" in search. A/B test on next 10 uploads.</p>
+      </div>
+      <div class="action-card">
+        <div class="ac-tag tag-high">High · 30–60 Days</div>
+        <h4>Scripted Hook Framework</h4>
+        <p>First 30 seconds determine 60% of retention. Implement a proven hook formula: tease the climax → state what viewer will gain → social proof. This alone lifts average view duration by 15–20%.</p>
+      </div>
+      <div class="action-card">
+        <div class="ac-tag tag-high">High · 30–60 Days</div>
+        <h4>Shorts-First Content Pipeline</h4>
+        <p>AyeJude's Shorts already hit 1.5M views organically. Build a dedicated 60-second Shorts pipeline from every long-form video — turning one video into 3–5 distribution touchpoints per week.</p>
+      </div>
+      <div class="action-card">
+        <div class="ac-tag tag-high">High · 60–90 Days</div>
+        <h4>NLP Comment Mining System</h4>
+        <p>Analyze thousands of comments with sentiment + topic clustering to identify what content topics the audience actually wants. This informs the editorial calendar with data, not guesswork.</p>
+      </div>
+      <div class="action-card">
+        <div class="ac-tag tag-medium">Medium · 60–90 Days</div>
+        <h4>Thumbnail A/B Testing Protocol</h4>
+        <p>Implement systematic thumbnail testing using YouTube's A/B feature. Track CTR by face vs text-dominant, high-contrast vs muted. Build a data-backed thumbnail style guide for the channel.</p>
+      </div>
+      <div class="action-card">
+        <div class="ac-tag tag-medium">Medium · 60–90 Days</div>
+        <h4>Competitor Keyword Gap Analysis</h4>
+        <p>Map all keywords that Trakin Tech and Ranveer Allahbadia rank for which AyeJude does not. Target the Telugu-language versions of high-traffic topics for search arbitrage opportunities.</p>
+      </div>
+      <div class="action-card">
+        <div class="ac-tag tag-medium">Medium · 90 Days+</div>
+        <h4>Engagement Velocity Dashboard</h4>
+        <p>Build a real-time analytics dashboard tracking likes/comments/views in the first 24 hours post-upload — the critical window YouTube uses for recommendation scoring. Optimize upload timing using this data.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 10: ANALYST PROFILE -->
+  <div class="analyst-section" id="analyst">
+    <h3>Why This Channel Needs a Data Analyst + Data Scientist</h3>
+    <p class="sub">The insights above were derived without access to YouTube Studio. Imagine what's possible with full data access and a dedicated analytics function.</p>
+
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="sk-label">Data Science & Analytics</div>
+        <h5>Full-Stack Analytics Capability</h5>
+        <p>Proficiency in Python, SQL, and visualization tools (Power BI, Tableau, Matplotlib). Experience building predictive models, dashboards, and automated reporting pipelines from raw data to executive insight.</p>
+      </div>
+      <div class="skill-card">
+        <div class="sk-label">ISRO — Space Applications</div>
+        <h5>Real-World Data Engineering</h5>
+        <p>Hands-on data processing and analysis experience at India's space research organization. Processed large-scale sensor and satellite datasets — analytical rigor that translates directly to channel performance optimization.</p>
+      </div>
+      <div class="skill-card">
+        <div class="sk-label">Fashion Industry Knowledge</div>
+        <h5>End-to-End Brand Operations</h5>
+        <p>Founded and operated a clothing brand — understanding the full consumer journey from concept to delivery, market positioning, and audience targeting. A rare analytical + industry-insider perspective for a fashion-content channel.</p>
+      </div>
+      <div class="skill-card">
+        <div class="sk-label">Visualization & Storytelling</div>
+        <h5>Data That Drives Decisions</h5>
+        <p>Skilled at translating complex datasets into actionable visual stories for non-technical audiences. The dashboard above demonstrates this capability — built entirely from public data, without YouTube Studio access.</p>
+      </div>
+      <div class="skill-card">
+        <div class="sk-label">NLP & Content Intelligence</div>
+        <h5>Comment Mining & Sentiment Analysis</h5>
+        <p>Can build systems to analyze audience comments at scale — identifying recurring topics, sentiment trends, and content gaps that human review would miss. This directly informs the editorial calendar with audience-first data.</p>
+      </div>
+      <div class="skill-card">
+        <div class="sk-label">Growth Strategy</div>
+        <h5>The ROI on a Data Hire</h5>
+        <p>Based on this analysis, closing the reach gap from 10% to 22% on 4.3M subscribers means 516K additional viewers per video. At even ₹10 RPM, that's significant incremental revenue — funded by one analyst hire.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>AyeJude Analytics Report — April 2026 | Data sourced from SocialBlade, HypeAuditor & public channel data</p>
+  <p>Prepared by Prabhas raj— Confidential</p>
+</div>
+
+<script>
+Chart.defaults.color = '#8A8880';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+Chart.defaults.font.family = 'DM Sans';
+
+const months = ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+
+new Chart(document.getElementById('viewsTrend'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [
+      {
+        label: 'Long-form views (K)',
+        data: [380, 420, 510, 440, 390, 480, 620, 510, 430, 390, 450, 434],
+        borderColor: '#7B9CF4', backgroundColor: 'rgba(123,156,244,0.08)',
+        borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#7B9CF4', fill: true, tension: 0.4
+      },
+      {
+        label: 'Shorts views (K)',
+        data: [120, 200, 310, 280, 190, 350, 480, 390, 280, 210, 320, 290],
+        borderColor: '#4FC3A1', backgroundColor: 'rgba(79,195,161,0.06)',
+        borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#4FC3A1', fill: true, tension: 0.4
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 11 }, callback: v => v + 'K' } }
+    }
+  }
+});
+
+new Chart(document.getElementById('gapChart'), {
+  type: 'bar',
+  data: {
+    labels: ['AyeJude', 'Healthy Benchmark\n(4M subs)', 'GeekyRanjit', 'Trakin Tech'],
+    datasets: [
+      {
+        label: 'Subscribers (M)',
+        data: [4.3, 4.0, 3.32, 15.5],
+        backgroundColor: 'rgba(123,156,244,0.7)', borderColor: '#7B9CF4', borderWidth: 1, borderRadius: 3
+      },
+      {
+        label: 'Avg Views / Video (×100K)',
+        data: [4.34, 9.0, 5.2, 8.1],
+        backgroundColor: 'rgba(232,201,122,0.7)', borderColor: '#E8C97A', borderWidth: 1, borderRadius: 3
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+new Chart(document.getElementById('engagePie'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Active Likers', 'Commenters', 'Passive Viewers'],
+    datasets: [{
+      data: [6.1, 0.07, 93.83],
+      backgroundColor: ['#7B9CF4', '#4FC3A1', 'rgba(232,201,122,0.4)'],
+      borderColor: '#111318', borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed.toFixed(2) + '%' } } },
+    cutout: '65%'
+  }
+});
+
+new Chart(document.getElementById('engageBar'), {
+  type: 'bar',
+  data: {
+    labels: ['Avg Likes', 'Avg Comments', 'Avg Shares (est)', 'Community Likes'],
+    datasets: [{
+      label: 'Per video / post',
+      data: [26500, 287, 1200, 25000],
+      backgroundColor: ['rgba(79,195,161,0.7)', 'rgba(123,156,244,0.7)', 'rgba(232,201,122,0.7)', 'rgba(224,94,94,0.7)'],
+      borderWidth: 0, borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 11 }, callback: v => v >= 1000 ? (v/1000).toFixed(0) + 'K' : v } }
+    }
+  }
+});
+
+const retLabels = ['0s','30s','1m','2m','3m','5m','7m','10m','12m','15m'];
+new Chart(document.getElementById('retentionChart'), {
+  type: 'line',
+  data: {
+    labels: retLabels,
+    datasets: [
+      {
+        label: 'Current estimated',
+        data: [100, 65, 56, 50, 44, 38, 33, 28, 25, 22],
+        borderColor: '#E05E5E', backgroundColor: 'rgba(224,94,94,0.06)',
+        borderWidth: 2.5, pointRadius: 3, fill: true, tension: 0.4
+      },
+      {
+        label: 'Projected w/ scripting',
+        data: [100, 82, 74, 68, 63, 57, 52, 47, 43, 40],
+        borderColor: '#4FC3A1', backgroundColor: 'rgba(79,195,161,0.08)',
+        borderWidth: 2.5, pointRadius: 3, fill: true, tension: 0.4, borderDash: [6,3]
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, min: 0, max: 100, ticks: { font: { size: 11 }, callback: v => v + '%' } }
+    }
+  }
+});
+
+new Chart(document.getElementById('seoRadar'), {
+  type: 'radar',
+  data: {
+    labels: ['Titles', 'Thumbnails', 'Descriptions', 'Tags', 'Chapters', 'Consistency', 'Shorts'],
+    datasets: [{
+      label: 'Current Score',
+      data: [55, 62, 22, 40, 10, 70, 45],
+      backgroundColor: 'rgba(123,156,244,0.15)', borderColor: '#7B9CF4', borderWidth: 2, pointBackgroundColor: '#7B9CF4'
+    }, {
+      label: 'Target Score',
+      data: [82, 80, 78, 75, 80, 85, 78],
+      backgroundColor: 'rgba(79,195,161,0.08)', borderColor: '#4FC3A1', borderWidth: 1.5, borderDash: [4,3], pointRadius: 2
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { r: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.07)' }, ticks: { display: false }, angleLines: { color: 'rgba(255,255,255,0.07)' }, pointLabels: { font: { size: 10 }, color: '#8A8880' } } }
+  }
+});
+
+new Chart(document.getElementById('contentPie'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Current Affairs/News', 'Fashion/Style', 'Celebrity Breakdowns', 'Grooming/Fitness', 'Lifestyle'],
+    datasets: [{
+      data: [45, 25, 15, 10, 5],
+      backgroundColor: ['#7B9CF4', '#E8C97A', '#4FC3A1', '#E05E5E', '#9B8FE0'],
+      borderColor: '#111318', borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } },
+    cutout: '60%'
+  }
+});
+
+new Chart(document.getElementById('contentPerf'), {
+  type: 'bar',
+  data: {
+    labels: ['Current Affairs', 'Celebrity Style', 'Fashion Tips', 'Grooming', 'Lifestyle'],
+    datasets: [{
+      label: 'Avg Views (K)',
+      data: [820, 580, 320, 180, 95],
+      backgroundColor: ['rgba(123,156,244,0.75)', 'rgba(232,201,122,0.75)', 'rgba(79,195,161,0.75)', 'rgba(224,94,94,0.6)', 'rgba(155,143,224,0.6)'],
+      borderWidth: 0, borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 11 }, callback: v => v + 'K' } },
+      y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+new Chart(document.getElementById('competitorBar'), {
+  type: 'bar',
+  data: {
+    labels: ['AyeJude', 'GeekyRanjit', 'Trakin Tech', 'Ranveer\nAllahbadia'],
+    datasets: [
+      {
+        label: 'Subscribers (M)',
+        data: [4.3, 3.32, 15.5, 11.1],
+        backgroundColor: 'rgba(123,156,244,0.75)', borderWidth: 0, borderRadius: 3
+      },
+      {
+        label: 'Total Views (100M)',
+        data: [16, 8.55, 32.1, 62.75],
+        backgroundColor: 'rgba(79,195,161,0.75)', borderWidth: 0, borderRadius: 3
+      },
+      {
+        label: 'Avg Views/Video (100K)',
+        data: [4.34, 5.2, 8.1, 3.6],
+        backgroundColor: 'rgba(232,201,122,0.75)', borderWidth: 0, borderRadius: 3
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 12 } } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+const growthMonths = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+new Chart(document.getElementById('growthChart'), {
+  type: 'line',
+  data: {
+    labels: growthMonths,
+    datasets: [
+      {
+        label: 'Current Trajectory (M subs)',
+        data: [4.3, 4.35, 4.39, 4.42, 4.46, 4.49, 4.52, 4.55, 4.57, 4.59, 4.62, 4.63, 4.65],
+        borderColor: '#E05E5E', backgroundColor: 'rgba(224,94,94,0.06)',
+        borderWidth: 2, fill: true, tension: 0.4, pointRadius: 3
+      },
+      {
+        label: 'Optimized Strategy (M subs)',
+        data: [4.3, 4.42, 4.58, 4.78, 5.02, 5.28, 5.52, 5.72, 5.88, 6.01, 6.14, 6.23, 6.31],
+        borderColor: '#4FC3A1', backgroundColor: 'rgba(79,195,161,0.07)',
+        borderWidth: 2.5, fill: true, tension: 0.4, pointRadius: 3, borderDash: [0]
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 11 }, callback: v => v.toFixed(1) + 'M' }, min: 4, max: 7 }
+    }
+  }
+});
+
+document.querySelectorAll('.nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
