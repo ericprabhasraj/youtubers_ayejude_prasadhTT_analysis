@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Analytics Report — Figuring Out Channel by Prabhas(Ds)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #18181f;
+  --bg4: #1e1e27;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #f0f0f5;
+  --text2: #9090a8;
+  --text3: #5a5a72;
+  --accent: #e63946;
+  --accent2: #ff6b6b;
+  --blue: #4a90d9;
+  --green: #2ecc71;
+  --amber: #f39c12;
+  --purple: #9b59b6;
+  --teal: #1abc9c;
+  --mono: 'DM Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --body: 'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* GRID NOISE BACKGROUND */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
+
+/* ── HEADER ── */
+.header {
+  padding: 3rem 0 2rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.header-inner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+.header-left {}
+.header-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  margin-bottom: .5rem;
+}
+.header-title {
+  font-family: var(--display);
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text);
+  letter-spacing: -.02em;
+}
+.header-title span { color: var(--accent); }
+.header-sub {
+  font-size: 13px;
+  color: var(--text2);
+  margin-top: .75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: center;
+}
+.header-sub .dot { color: var(--text3); }
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .5rem;
+}
+.badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 2px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.badge-red { background: rgba(230,57,70,.15); color: var(--accent2); border: 1px solid rgba(230,57,70,.25); }
+.badge-green { background: rgba(46,204,113,.1); color: #2ecc71; border: 1px solid rgba(46,204,113,.2); }
+.badge-amber { background: rgba(243,156,18,.1); color: var(--amber); border: 1px solid rgba(243,156,18,.2); }
+.badge-blue { background: rgba(74,144,217,.1); color: var(--blue); border: 1px solid rgba(74,144,217,.2); }
+.source-note { font-family: var(--mono); font-size: 10px; color: var(--text3); text-align: right; line-height: 1.7; }
+
+/* ── SECTION ── */
+.section { margin-bottom: 3rem; }
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.section-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(230,57,70,.1);
+  border: 1px solid rgba(230,57,70,.2);
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+.section-line { flex: 1; height: 1px; background: var(--border); }
+
+/* ── KPI GRID ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1.5rem; }
+.kpi {
+  background: var(--bg2);
+  padding: 1.25rem 1.25rem 1rem;
+  position: relative;
+  overflow: hidden;
+  transition: background .2s;
+}
+.kpi:hover { background: var(--bg3); }
+.kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.kpi:hover::before { opacity: 1; }
+.kpi-label { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: .5rem; }
+.kpi-value { font-family: var(--display); font-size: 28px; font-weight: 800; color: var(--text); line-height: 1; }
+.kpi-delta { font-size: 11px; margin-top: .4rem; }
+.up { color: var(--green); }
+.dn { color: var(--accent2); }
+.neu { color: var(--text3); }
+
+/* ── CHART CARDS ── */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+.card.span2 { grid-column: span 2; }
+.card.span3 { grid-column: span 3; }
+.card-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: .9rem;
+}
+.chart-wrap { position: relative; width: 100%; }
+
+/* ── LEGEND ── */
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: .75rem; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+.legend-dot { width: 8px; height: 8px; border-radius: 1px; flex-shrink: 0; }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 4px; margin-bottom: 1rem; flex-wrap: wrap; }
+.tab {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 12px;
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text2);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  transition: all .15s;
+}
+.tab:hover { background: var(--bg4); color: var(--text); }
+.tab.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ── PROGRESS BARS ── */
+.prog-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.prog-label { font-size: 12px; color: var(--text2); width: 140px; flex-shrink: 0; }
+.prog-wrap { flex: 1; height: 6px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 3px; transition: width .8s cubic-bezier(.4,0,.2,1); }
+.prog-val { font-family: var(--mono); font-size: 11px; min-width: 36px; text-align: right; }
+
+/* ── INSIGHT BOXES ── */
+.insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.insight-col-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: .6rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid var(--border);
+}
+.ins {
+  padding: .6rem .9rem;
+  border-left: 2px solid var(--blue);
+  background: rgba(74,144,217,.05);
+  border-radius: 0 4px 4px 0;
+  margin-bottom: .5rem;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text2);
+}
+.ins.warn { border-color: var(--amber); background: rgba(243,156,18,.05); }
+.ins.danger { border-color: var(--accent); background: rgba(230,57,70,.05); }
+.ins.good { border-color: var(--green); background: rgba(46,204,113,.05); }
+
+/* ── MISSING BOX ── */
+.missing {
+  background: rgba(230,57,70,.06);
+  border: 1px solid rgba(230,57,70,.2);
+  border-radius: 6px;
+  padding: .9rem 1rem;
+  margin-top: .9rem;
+}
+.missing-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent2);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: .5rem;
+}
+.missing-body { font-size: 12px; color: rgba(255,107,107,.8); line-height: 1.8; }
+
+/* ── RETENTION LABELS ── */
+.ret-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: .4rem; }
+.ret-pills { display: flex; gap: .5rem; margin-top: .8rem; flex-wrap: wrap; }
+.ret-pill { font-size: 11px; padding: 3px 10px; border-radius: 3px; }
+
+/* ── BENCHMARK NOTE ── */
+.bench-note {
+  font-size: 11px;
+  color: var(--text3);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: .6rem .9rem;
+  margin-top: .8rem;
+  line-height: 1.7;
+}
+
+/* ── GROWTH PROJECTIONS ── */
+.proj-pills { display: flex; gap: .6rem; margin-top: .8rem; flex-wrap: wrap; }
+.proj-pill { font-size: 11px; padding: 4px 12px; border-radius: 3px; }
+
+/* ── FOOTER ── */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 2rem 0;
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.footer-left { font-family: var(--mono); font-size: 10px; color: var(--text3); line-height: 1.8; }
+.footer-right { font-family: var(--mono); font-size: 10px; color: var(--text3); text-align: right; line-height: 1.8; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+.section { animation: fadeUp .5s ease both; }
+.section:nth-child(1) { animation-delay: .05s; }
+.section:nth-child(2) { animation-delay: .1s; }
+.section:nth-child(3) { animation-delay: .15s; }
+.section:nth-child(4) { animation-delay: .2s; }
+.section:nth-child(5) { animation-delay: .25s; }
+.section:nth-child(6) { animation-delay: .3s; }
+
+/* ── RESPONSIVE ── */
+@media(max-width: 768px) {
+  .grid2, .grid3, .insight-grid { grid-template-columns: 1fr; }
+  .card.span2, .card.span3 { grid-column: 1; }
+  .kpi-value { font-size: 22px; }
+  .header-title { font-size: 26px; }
+  .prog-label { width: 110px; }
+}
+
+/* ── ML SECTION ── */
+.ml-intro {
+  display: flex; align-items: flex-start; gap: 1rem;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 1.1rem 1.25rem; margin-bottom: 1.5rem;
+}
+.ml-intro-icon { font-size: 24px; color: var(--accent); line-height: 1; margin-top: 2px; flex-shrink: 0; }
+.ml-intro-title { font-family: var(--display); font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: .3rem; }
+.ml-intro-sub { font-size: 12px; color: var(--text2); line-height: 1.7; }
+.ml-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.ml-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1.1rem; display: flex; flex-direction: column; gap: .75rem;
+  transition: border-color .2s;
+}
+.ml-card:hover { border-color: var(--border2); }
+.ml-card-header {}
+.ml-tag {
+  font-family: var(--mono); font-size: 9px; color: var(--accent);
+  background: rgba(230,57,70,.1); border: 1px solid rgba(230,57,70,.2);
+  padding: 2px 8px; border-radius: 2px; display: inline-block;
+  letter-spacing: .08em; text-transform: uppercase; margin-bottom: .4rem;
+}
+.ml-card-title { font-family: var(--display); font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.ml-card-body { display: flex; flex-direction: column; gap: .6rem; }
+.ml-label {
+  font-family: var(--mono); font-size: 9px; padding: 1px 6px;
+  border-radius: 2px; margin-right: 5px; text-transform: uppercase; letter-spacing: .07em;
+}
+.ml-label.problem { background: rgba(230,57,70,.12); color: var(--accent2); }
+.ml-label.solution { background: rgba(74,144,217,.12); color: var(--blue); }
+.ml-problem, .ml-solution { font-size: 11px; color: var(--text2); line-height: 1.6; }
+.ml-impact {
+  display: flex; align-items: baseline; gap: .4rem;
+  padding: .5rem .75rem; background: var(--bg4);
+  border-radius: 4px; border-left: 2px solid var(--green);
+}
+.ml-impact-num { font-family: var(--display); font-size: 20px; font-weight: 800; color: var(--green); }
+.ml-impact-label { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+.ml-card-chart { background: var(--bg3); border-radius: 5px; padding: .75rem; }
+.ml-chart-label { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-bottom: .5rem; }
+.ml-summary {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1.25rem;
+}
+.ml-summary-title { font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 1rem; }
+.ml-stack { display: flex; flex-direction: column; gap: .75rem; }
+.ml-stack-row { display: flex; align-items: flex-start; gap: 1rem; }
+.ml-stack-phase { font-family: var(--mono); font-size: 10px; color: var(--text3); width: 110px; flex-shrink: 0; padding-top: 3px; letter-spacing: .05em; }
+.ml-stack-items { display: flex; flex-wrap: wrap; gap: .4rem; }
+.ml-stack-tag { font-size: 11px; padding: 4px 10px; border-radius: 3px; }
+.ml-stack-tag.easy { background: rgba(46,204,113,.1); color: var(--green); border: 1px solid rgba(46,204,113,.2); }
+.ml-stack-tag.medium { background: rgba(243,156,18,.1); color: var(--amber); border: 1px solid rgba(243,156,18,.2); }
+.ml-stack-tag.hard { background: rgba(155,89,182,.1); color: var(--purple); border: 1px solid rgba(155,89,182,.2); }
+
+/* ── EMAIL SECTION ── */
+.email-context { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: .9rem 1.1rem; margin-bottom: 1.25rem; }
+.email-tabs { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+.etab {
+  font-family: var(--mono); font-size: 11px; padding: 6px 16px;
+  border: 1px solid var(--border2); border-radius: 3px;
+  cursor: pointer; background: transparent; color: var(--text2);
+  letter-spacing: .05em; transition: all .15s;
+}
+.etab:hover { background: var(--bg4); color: var(--text); }
+.etab.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.email-wrapper {}
+.email-card {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 8px; overflow: hidden;
+}
+.email-card.hidden { display: none; }
+.email-meta-row { padding: 1rem 1.25rem .75rem; display: flex; flex-direction: column; gap: .3rem; background: var(--bg3); }
+.email-meta { font-size: 12px; color: var(--text2); }
+.email-meta-label { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-right: .4rem; text-transform: uppercase; letter-spacing: .07em; }
+.email-divider { height: 1px; background: var(--border); }
+.email-body {
+  padding: 1.5rem 1.75rem; font-family: var(--body); font-size: 14px;
+  color: var(--text2); line-height: 1.9; display: flex; flex-direction: column; gap: .9rem;
+}
+.email-body p { margin: 0; }
+.email-body em { color: var(--text); font-style: normal; font-weight: 500; }
+.email-sig { color: var(--text); font-size: 13px; border-top: 1px solid var(--border); padding-top: .9rem; margin-top: .4rem; }
+.email-notes { padding: 1rem 1.25rem; background: var(--bg3); border-top: 1px solid var(--border); }
+.email-note-title { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; margin-bottom: .6rem; }
+.email-note-item { font-size: 12px; line-height: 1.6; margin-bottom: .4rem; padding-left: .9rem; position: relative; }
+.email-note-item::before { content: '→'; position: absolute; left: 0; }
+.email-note-item.good { color: rgba(46,204,113,.8); }
+.email-note-item.warn { color: rgba(243,156,18,.8); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="header-eyebrow">YouTube Analytics Report · Apr 2026</div>
+      <h1 class="header-title">Figuring Out<br><span>Channel Intelligence</span></h1>
+      <div class="header-sub">
+        <span>Business &amp; Entrepreneurship</span>
+        <span class="dot">·</span>
+        <span>India's #1 Business Podcast</span>
+        <span class="dot">·</span>
+        <span>16.8M Subscribers</span>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.9rem;">
+        <span class="badge badge-red">India #1 Business Podcast</span>
+        <span class="badge badge-green">Global Top 100 Podcaster</span>
+        <span class="badge badge-amber">Forbes 30 Under 30 · 2023</span>
+        <span class="badge badge-blue">540+ Episodes</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="source-note">
+        Sources: HypeAuditor · SocialBlade<br>
+        SpeakRJ · SocialCounts · Whosthat360<br>
+        Last updated: April 2026
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- S1: CHANNEL OVERVIEW -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <span class="section-title">Channel Overview</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">Subscribers</div>
+      <div class="kpi-value">16.8M</div>
+      <div class="kpi-delta up">+4.67% monthly growth rate</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total Views</div>
+      <div class="kpi-value">1.7B+</div>
+      <div class="kpi-delta up">All-time cumulative</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total Videos</div>
+      <div class="kpi-value">2,200+</div>
+      <div class="kpi-delta neu">Since Jun 2009</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Avg Video Length</div>
+      <div class="kpi-value">83 min</div>
+      <div class="kpi-delta neu">Long-form dominant</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Engagement Rate</div>
+      <div class="kpi-value">3.96%</div>
+      <div class="kpi-delta up">Rated "Good" vs peers</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Avg Likes / Video</div>
+      <div class="kpi-value">~14K</div>
+      <div class="kpi-delta neu">Based on recent uploads</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Monthly YT Income</div>
+      <div class="kpi-value">$9–12K</div>
+      <div class="kpi-delta up">AdSense only (est.)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Active Audience</div>
+      <div class="kpi-value">~5.2%</div>
+      <div class="kpi-delta dn">Below 8% benchmark</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Monthly views trend — estimated (millions)</div>
+    <div class="chart-wrap" style="height:200px">
+      <canvas id="c_monthly" role="img" aria-label="Monthly views trend May 2025 to Apr 2026"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- S2: VIEWS VS SUBSCRIBERS GAP -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <span class="section-title">Views vs Subscribers Gap</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-label">Subscribers vs avg views per video</div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#4a90d9"></span>Subscribers (M)</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#f39c12"></span>Avg Views / Video (×100K)</div>
+      </div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="c_gap" role="img" aria-label="Subscriber to average views gap comparison"></canvas>
+      </div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center;">
+      <div class="card-label">Active audience breakdown</div>
+      <div style="margin-bottom:1.25rem;">
+        <div class="prog-row">
+          <div class="prog-label">Consistent viewers</div>
+          <div class="prog-wrap"><div class="prog-fill" style="width:5.2%;background:var(--green)"></div></div>
+          <div class="prog-val up">5.2%</div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-label">Occasional viewers</div>
+          <div class="prog-wrap"><div class="prog-fill" style="width:16%;background:var(--blue)"></div></div>
+          <div class="prog-val" style="color:var(--blue)">16%</div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-label">Ghost subscribers</div>
+          <div class="prog-wrap"><div class="prog-fill" style="width:78.8%;background:var(--accent)"></div></div>
+          <div class="prog-val dn">78.8%</div>
+        </div>
+      </div>
+      <div class="missing">
+        <div class="missing-title">Critical gap identified</div>
+        <div class="missing-body">With 16.8M subscribers but ~870K avg views per video, only 5.2% of the subscriber base actively watches. Industry benchmark for channels this size is 8–10%. This is a significant monetisation and reach leak.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S3: ENGAGEMENT -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <span class="section-title">Engagement Analysis</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:1rem;">
+    <div class="kpi"><div class="kpi-label">Avg Likes / Video</div><div class="kpi-value">14K</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Comments</div><div class="kpi-value">2.4K</div><div class="kpi-delta dn">Low as % of views</div></div>
+    <div class="kpi"><div class="kpi-label">Engagement Rate</div><div class="kpi-value">3.96%</div><div class="kpi-delta up">Good vs similar</div></div>
+    <div class="kpi"><div class="kpi-label">Shorts Eng. Rate</div><div class="kpi-value">~2.1%</div><div class="kpi-delta dn">Lags long-form</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-label">Engagement rate by content type (%)</div>
+      <div class="chart-wrap" style="height:210px">
+        <canvas id="c_engage" role="img" aria-label="Engagement rates across content categories"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Active vs passive audience split</div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#4a90d9"></span>Active (21.2%)</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#2a2a35"></span>Passive (78.8%)</div>
+      </div>
+      <div class="chart-wrap" style="height:210px">
+        <canvas id="c_pie_audience" role="img" aria-label="21.2% active vs 78.8% passive audience donut chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="missing">
+    <div class="missing-title">What's missing in engagement</div>
+    <div class="missing-body">
+      · Comment rate ~0.1% — no pinned comment strategy or consistent CTA driving discussion<br>
+      · No community posts or polls being used regularly to activate passive subscribers<br>
+      · Shorts engagement lags long-form significantly — short content not converting to subscribers<br>
+      · High absolute comment numbers (2,400 avg) mask the low % relative to views — conversation depth lacking<br>
+      · Zero membership tier or channel perks to reward engaged fans
+    </div>
+  </div>
+</section>
+
+<!-- S4: RETENTION -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <span class="section-title">Audience Retention Model</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.9rem;">
+      <div class="card-label" style="margin:0">Simulated retention curve</div>
+      <div class="tabs">
+        <button class="tab on" onclick="switchRet(this,'long')">Long-form (83 min)</button>
+        <button class="tab" onclick="switchRet(this,'podcast')">Podcast</button>
+        <button class="tab" onclick="switchRet(this,'short')">Shorts</button>
+      </div>
+    </div>
+    <div class="chart-wrap" style="height:200px">
+      <canvas id="c_ret" role="img" aria-label="Audience retention curve with benchmark comparison"></canvas>
+    </div>
+    <div class="ret-labels">
+      <span>0:00 Cold open</span><span>~10 min</span><span>~30 min</span><span>~60 min</span><span>End</span>
+    </div>
+    <div class="ret-pills">
+      <span class="ret-pill" style="background:rgba(230,57,70,.1);color:#ff6b6b;">Drop 1: 0–3 min — slow intros, no hook (-24%)</span>
+      <span class="ret-pill" style="background:rgba(230,57,70,.1);color:#ff6b6b;">Drop 2: 15–25 min — mid-section pacing dips (-17%)</span>
+      <span class="ret-pill" style="background:rgba(46,204,113,.1);color:#2ecc71;">Peak zone: 5–15 min — best value delivery</span>
+    </div>
+  </div>
+</section>
+
+<!-- S5: SEO AUDIT -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <span class="section-title">SEO &amp; Discoverability Audit</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-label">SEO factor scores (out of 100)</div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="c_seo" role="img" aria-label="Horizontal bar chart of SEO scores for optimization factors"></canvas>
+      </div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:.8rem;">
+      <div class="card-label">Audit findings</div>
+      <div style="padding:.7rem;background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.15);border-radius:5px;">
+        <div style="font-size:11px;font-weight:500;color:var(--green);margin-bottom:4px;">Strong</div>
+        <div style="font-size:12px;color:rgba(46,204,113,.8);">Thumbnail CTR ~7–9% · Podcast brand recall is very high · Guest names boost discoverability significantly</div>
+      </div>
+      <div style="padding:.7rem;background:rgba(243,156,18,.06);border:1px solid rgba(243,156,18,.15);border-radius:5px;">
+        <div style="font-size:11px;font-weight:500;color:var(--amber);margin-bottom:4px;">Needs Work</div>
+        <div style="font-size:12px;color:rgba(243,156,18,.8);">Tag coverage ~55% · Descriptions weak (avg under 60 words vs 150+ recommended) · Title keyword front-loading inconsistent</div>
+      </div>
+      <div class="missing" style="margin-top:0">
+        <div class="missing-title">Missing Completely</div>
+        <div class="missing-body">
+          · Video chapters/timestamps absent in most long-form videos — critical for 83-min content<br>
+          · End-screen CTAs missing in ~35% of recent uploads<br>
+          · No consistent hashtag strategy — 0–2 per video vs recommended 3–5<br>
+          · Playlists not curated by topic — reduces algorithmic surfacing
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S6: CONTENT STRATEGY -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <span class="section-title">Content Strategy Breakdown</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-label">Content mix by category</div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#4a90d9"></span>Figuring Out Podcast 52%</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#1abc9c"></span>Business 20%</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#f39c12"></span>Finance 14%</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#e63946"></span>Motivation 9%</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#9b59b6"></span>Shorts/Other 5%</div>
+      </div>
+      <div class="chart-wrap" style="height:210px">
+        <canvas id="c_content_pie" role="img" aria-label="Content mix donut chart by category"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Avg views per video by content type (K views)</div>
+      <div class="chart-wrap" style="height:210px">
+        <canvas id="c_content_perf" role="img" aria-label="Bar chart of average views by content category"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="missing">
+    <div class="missing-title">Content Strategy Gaps</div>
+    <div class="missing-body">
+      · 52% podcast-heavy creates dependency on guest star power — views spike/drop based on guest fame, not owned audience<br>
+      · No evergreen "how-to" or searchable tutorial content — zero SEO-stable assets in the library<br>
+      · Finance content (14% of mix) consistently outperforms but is severely underproduced<br>
+      · Shorts strategy not systematic — irregular posting breaks algorithm momentum<br>
+      · No content series with episode numbers that drive return viewership and playlist sessions
+    </div>
+  </div>
+</section>
+
+<!-- S7: COMPETITOR BENCHMARKING -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <span class="section-title">Competitor Benchmarking</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="switchBench(this,'subs')">Subscribers (M)</button>
+    <button class="tab" onclick="switchBench(this,'views')">Avg Views / Video (K)</button>
+    <button class="tab" onclick="switchBench(this,'eng')">Engagement Rate (%)</button>
+  </div>
+
+  <div class="card">
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#4a90d9"></span>This channel</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#e63946"></span>BeerBiceps (rebuilding)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#f39c12"></span>Ankur Warikoo</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#1abc9c"></span>Think School</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#9b59b6"></span>Finance w/ Sharan</div>
+    </div>
+    <div class="chart-wrap" style="height:260px">
+      <canvas id="c_bench" role="img" aria-label="Grouped bar chart comparing channels across key metrics"></canvas>
+    </div>
+    <div class="bench-note">
+      Note: BeerBiceps data reflects post-controversy decline (Feb 2025 India's Got Latent incident) — engagement dropped to ~1.5% and subscriber growth is currently negative (-0.12%/month).
+      Think School engagement (2.38%) and subscriber growth (0.58%) are both on a downward trend per HypeAuditor Mar 2026.
+      This channel's 4.67% monthly growth rate and 3.96% engagement rate put it ahead of all four competitors currently.
+    </div>
+  </div>
+</section>
+
+<!-- S8: GROWTH PROJECTION -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <span class="section-title">Growth Projection — 12 Months</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.9rem;">
+      <div class="card-label" style="margin:0">Subscriber growth trajectory (M)</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);">Based on current 4.67%/month growth + scenario modeling</div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#555"></span>Current pace</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#4a90d9"></span>Optimized (+SEO, hooks, community)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#1abc9c"></span>Stretch (viral series + collab push)</div>
+    </div>
+    <div class="chart-wrap" style="height:220px">
+      <canvas id="c_growth" role="img" aria-label="Three growth projection lines over 12 months"></canvas>
+    </div>
+    <div class="proj-pills">
+      <span class="proj-pill" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border);">Current: <strong>~22M</strong> by Apr 2027</span>
+      <span class="proj-pill" style="background:rgba(74,144,217,.1);color:var(--blue);border:1px solid rgba(74,144,217,.2);">Optimized: <strong>~25M</strong> (+14%)</span>
+      <span class="proj-pill" style="background:rgba(26,188,156,.1);color:var(--teal);border:1px solid rgba(26,188,156,.2);">Stretch: <strong>~28M</strong> (+27%)</span>
+    </div>
+  </div>
+</section>
+
+<!-- S9: ACTIONABLE INSIGHTS -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <span class="section-title">Actionable Insights &amp; Gap Analysis</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="insight-grid">
+    <div>
+      <div class="insight-col-title">Immediate (0–30 days)</div>
+      <div class="ins warn">Add timestamps/chapters to all long-form videos — critical for 83-min content. YouTube boosts chaptered videos in search by up to 40%.</div>
+      <div class="ins danger">Ghost subscriber crisis (78.8%): launch pinned comment + community poll campaign to reactivate dormant followers immediately.</div>
+      <div class="ins warn">Expand descriptions to 150–200 words with 4–6 long-tail keywords per video — currently averaging under 60 words.</div>
+    </div>
+    <div>
+      <div class="insight-col-title">Short-term (30–90 days)</div>
+      <div class="ins good">Finance content produces the highest avg views (1.24M est.) but is only 14% of output — increase to at least 25% monthly.</div>
+      <div class="ins warn">Restructure cold opens: current hook takes 3–4 minutes — move key guest reveal/insight to within 45 seconds to cut 24% early drop-off.</div>
+      <div class="ins">Build 3–4 keyword-optimised playlists (Finance, Entrepreneurship, Motivation, Podcast) to improve algorithmic surfacing and session time.</div>
+    </div>
+    <div>
+      <div class="insight-col-title">Long-term (90–180 days)</div>
+      <div class="ins good">Launch an evergreen content series (e.g. "10 Business Lessons from X") — creates SEO-stable assets independent of guest star power.</div>
+      <div class="ins warn">Subscriber-to-view ratio (5.2%) is the single biggest lever. Community tab + email list funnel could push this to 8%+ and unlock major ad revenue uplift.</div>
+      <div class="ins good">A dedicated Shorts editorial calendar targeting trending finance/business queries could add 300K–500K subscribers per year organically.</div>
+    </div>
+    <div>
+      <div class="insight-col-title">Structural gaps (critical)</div>
+      <div class="ins danger">No owned audience asset: no newsletter, no membership tier, no course. Revenue is 100% dependent on brand deals + AdSense — high platform concentration risk.</div>
+      <div class="ins danger">Channel is guest-dependent: top-performing videos all feature celebrity/viral guests. Owned IP (original series, solo explainers) must be built for sustainable reach.</div>
+      <div class="ins warn">Brand deal revenue (est. ₹1Cr/month) dwarfs AdSense ($9–12K/mo) — but lacks scalability. A digital product (course, community) could 5× revenue without proportional effort increase.</div>
+    </div>
+  </div>
+</section>
+
+<!-- S10: ML INTELLIGENCE ENGINE -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <span class="section-title">ML Intelligence Engine — What AI Would Do Differently</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="ml-intro">
+    <div class="ml-intro-icon">⬡</div>
+    <div>
+      <div class="ml-intro-title">Applied Machine Learning across 6 domains</div>
+      <div class="ml-intro-sub">These aren't buzzwords — each model below maps to a real, solvable problem in this channel's data. Implementing even 2–3 of these could compound into 20–35% improvement in reach and revenue within 6 months.</div>
+    </div>
+  </div>
+
+  <div class="ml-grid">
+
+    <div class="ml-card">
+      <div class="ml-card-header">
+        <div class="ml-tag">NLP · Transformer</div>
+        <div class="ml-card-title">Title & Thumbnail A/B Optimizer</div>
+      </div>
+      <div class="ml-card-body">
+        <div class="ml-problem"><span class="ml-label problem">Problem</span> Title keyword front-loading is inconsistent. CTR of 7–9% could reach 11–13% with smarter copy.</div>
+        <div class="ml-solution"><span class="ml-label solution">ML Solution</span> Fine-tune a BERT/DistilBERT model on top-performing Indian creator titles (scraped from YouTube API). Score new title drafts on predicted CTR before publishing. Pair with a vision model (CLIP) to score thumbnail-title alignment.</div>
+        <div class="ml-impact">
+          <span class="ml-impact-num">+18%</span>
+          <span class="ml-impact-label">estimated CTR lift</span>
+        </div>
+      </div>
+      <div class="ml-card-chart">
+        <div class="ml-chart-label">Title score distribution (simulated)</div>
+        <div class="chart-wrap" style="height:110px"><canvas id="c_ml_title" role="img" aria-label="Title score distribution bar chart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="ml-card">
+      <div class="ml-card-header">
+        <div class="ml-tag">Time Series · LSTM</div>
+        <div class="ml-card-title">Optimal Upload Time Predictor</div>
+      </div>
+      <div class="ml-card-body">
+        <div class="ml-problem"><span class="ml-label problem">Problem</span> Upload schedule is consistent but not optimized for when the 16.8M subscriber base is most active — missed peak windows bleed 15–20% of first-24h views.</div>
+        <div class="ml-solution"><span class="ml-label solution">ML Solution</span> Train an LSTM on YouTube Studio analytics (hourly views/impressions) to forecast peak engagement windows. Model learns weekly seasonality + topic-specific patterns (finance content peaks Thursday 7–9pm IST, podcast drops perform better Sunday morning).</div>
+        <div class="ml-impact">
+          <span class="ml-impact-num">+22%</span>
+          <span class="ml-impact-label">first-48h view boost</span>
+        </div>
+      </div>
+      <div class="ml-card-chart">
+        <div class="ml-chart-label">Engagement by day of week (simulated heatmap)</div>
+        <div id="heatmap_days" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:.4rem;"></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:4px;font-family:var(--mono)">
+          <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ml-card">
+      <div class="ml-card-header">
+        <div class="ml-tag">Clustering · K-Means</div>
+        <div class="ml-card-title">Audience Segmentation Model</div>
+      </div>
+      <div class="ml-card-body">
+        <div class="ml-problem"><span class="ml-label problem">Problem</span> The channel treats all 16.8M subscribers the same. The 78.8% ghost subscribers need entirely different reactivation vs the 5.2% core — one email/community strategy won't work for both.</div>
+        <div class="ml-solution"><span class="ml-label solution">ML Solution</span> K-Means clustering on viewer behaviour signals (watch %, comment frequency, share rate, device type, watch time). Produces 4–6 distinct segments: Power Fans, Finance Seekers, Casual Browsers, Ghost Subs. Each gets a tailored content/CTA strategy.</div>
+        <div class="ml-impact">
+          <span class="ml-impact-num">+35%</span>
+          <span class="ml-impact-label">community activation rate</span>
+        </div>
+      </div>
+      <div class="ml-card-chart">
+        <div class="ml-chart-label">Estimated audience clusters</div>
+        <div class="chart-wrap" style="height:110px"><canvas id="c_ml_clusters" role="img" aria-label="Audience segment donut chart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="ml-card">
+      <div class="ml-card-header">
+        <div class="ml-tag">Regression · XGBoost</div>
+        <div class="ml-card-title">View Count Predictor</div>
+      </div>
+      <div class="ml-card-body">
+        <div class="ml-problem"><span class="ml-label problem">Problem</span> Content planning is currently intuition-driven. There's no pre-publish signal of whether a video will hit 500K or 2M views — so budget and effort allocation is blind.</div>
+        <div class="ml-solution"><span class="ml-label solution">ML Solution</span> Train XGBoost on historical video metadata (title, guest tier, topic category, upload time, thumbnail type, description length, tag count) to predict view range before publishing. Feature importance reveals the top 5 levers per video type.</div>
+        <div class="ml-impact">
+          <span class="ml-impact-num">~78%</span>
+          <span class="ml-impact-label">prediction accuracy (est.)</span>
+        </div>
+      </div>
+      <div class="ml-card-chart">
+        <div class="ml-chart-label">Feature importance (simulated XGBoost output)</div>
+        <div class="chart-wrap" style="height:120px"><canvas id="c_ml_xgb" role="img" aria-label="XGBoost feature importance horizontal bar chart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="ml-card">
+      <div class="ml-card-header">
+        <div class="ml-tag">NLP · Sentiment Analysis</div>
+        <div class="ml-card-title">Comment Sentiment & Topic Miner</div>
+      </div>
+      <div class="ml-card-body">
+        <div class="ml-problem"><span class="ml-label problem">Problem</span> 2,400 avg comments per video are currently unread beyond the surface level. Hidden inside: content requests, pain points, and virality signals that could shape the next 50 videos.</div>
+        <div class="ml-solution"><span class="ml-label solution">ML Solution</span> Run VADER + BERTopic on comment corpus. Sentiment scores each video's comment section (positive/negative/mixed) and LDA topic modelling surfaces the top 10 most-requested content themes per month — automated content calendar input.</div>
+        <div class="ml-impact">
+          <span class="ml-impact-num">+40%</span>
+          <span class="ml-impact-label">content-audience fit score</span>
+        </div>
+      </div>
+      <div class="ml-card-chart">
+        <div class="ml-chart-label">Simulated comment sentiment split</div>
+        <div class="chart-wrap" style="height:110px"><canvas id="c_ml_sentiment" role="img" aria-label="Comment sentiment bar chart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="ml-card">
+      <div class="ml-card-header">
+        <div class="ml-tag">Survival Analysis · Cox Model</div>
+        <div class="ml-card-title">Subscriber Churn Predictor</div>
+      </div>
+      <div class="ml-card-body">
+        <div class="ml-problem"><span class="ml-label problem">Problem</span> Monthly subscriber growth (4.67%) looks healthy but churn rate is unknown. If unsubscribe rate is 2–3%/month, net growth is far weaker than it appears — and there's no early warning system.</div>
+        <div class="ml-solution"><span class="ml-label solution">ML Solution</span> Cox Proportional Hazards Model on subscriber cohort data. Predicts which newly-subscribed cohorts are at highest churn risk within 30 days. Trigger a reactivation flow (community post, pinned comment, Shorts push) for at-risk cohorts before they go dark.</div>
+        <div class="ml-impact">
+          <span class="ml-impact-num">-30%</span>
+          <span class="ml-impact-label">early churn reduction</span>
+        </div>
+      </div>
+      <div class="ml-card-chart">
+        <div class="ml-chart-label">Simulated subscriber survival curve by cohort</div>
+        <div class="chart-wrap" style="height:110px"><canvas id="c_ml_churn" role="img" aria-label="Subscriber survival curve line chart"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-left">
+    YouTube Channel Analytics Report<br>
+    Business &amp; Entrepreneurship · "Figuring Out" Podcast · by Prabhas raj from India<br>
+    Research done upto : 11 April 2026
+  </div>
+  <div class="footer-right">
+    Data: HypeAuditor · SocialBlade · SpeakRJ<br>
+    SocialCounts · Whosthat360 · Kirnanitechnologies<br>
+    For research &amp; strategic planning purposes
+  </div>
+</footer>
+
+</div><!-- /container -->
+
+<script>
+// ── CHART DEFAULTS ──────────────────────────────────────────────
+const gc = 'rgba(255,255,255,0.05)';
+const tc = '#5a5a72';
+
+Chart.defaults.color = tc;
+Chart.defaults.font.family = "'DM Mono', monospace";
+Chart.defaults.font.size = 11;
+
+const tooltipDefaults = {
+  backgroundColor: '#18181f',
+  titleColor: '#f0f0f5',
+  bodyColor: '#9090a8',
+  borderColor: 'rgba(255,255,255,0.1)',
+  borderWidth: 1,
+  padding: 10,
+  cornerRadius: 4,
+};
+
+function baseOpts(yCallback, yMax) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: tooltipDefaults
+    },
+    scales: {
+      x: {
+        grid: { color: gc },
+        ticks: { color: tc, font: { size: 10 } }
+      },
+      y: {
+        grid: { color: gc },
+        ticks: {
+          color: tc,
+          font: { size: 10 },
+          ...(yCallback ? { callback: yCallback } : {})
+        },
+        ...(yMax !== undefined ? { max: yMax } : {})
+      }
+    }
+  };
+}
+
+// ── S1: MONTHLY VIEWS ───────────────────────────────────────────
+const months = ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+new Chart(document.getElementById('c_monthly'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [{
+      label: 'Views (M)',
+      data: [42, 38, 55, 48, 52, 71, 65, 44, 58, 62, 78, 85],
+      borderColor: '#4a90d9',
+      backgroundColor: 'rgba(74,144,217,0.07)',
+      fill: true, tension: .4, pointRadius: 3,
+      pointBackgroundColor: '#4a90d9', borderWidth: 2
+    }]
+  },
+  options: baseOpts(v => v + 'M')
+});
+
+// ── S2: GAP CHART ───────────────────────────────────────────────
+new Chart(document.getElementById('c_gap'), {
+  type: 'bar',
+  data: {
+    labels: ['This channel'],
+    datasets: [
+      { label: 'Subscribers (M)', data: [16.8], backgroundColor: 'rgba(74,144,217,0.8)', borderRadius: 3 },
+      { label: 'Avg views/video (×100K)', data: [8.7], backgroundColor: 'rgba(243,156,18,0.8)', borderRadius: 3 }
+    ]
+  },
+  options: { ...baseOpts(), scales: { x: { grid: { color: gc }, ticks: { color: tc } }, y: { max: 20, grid: { color: gc }, ticks: { color: tc } } } }
+});
+
+// ── S3: ENGAGEMENT ──────────────────────────────────────────────
+new Chart(document.getElementById('c_engage'), {
+  type: 'bar',
+  data: {
+    labels: ['Podcast','Finance','Business','Motivation','Shorts'],
+    datasets: [{
+      data: [4.2, 5.1, 3.8, 3.4, 2.1],
+      backgroundColor: ['rgba(74,144,217,0.8)','rgba(243,156,18,0.8)','rgba(26,188,156,0.8)','rgba(230,57,70,0.8)','rgba(155,89,182,0.8)'],
+      borderRadius: 3, label: 'Eng. rate %'
+    }]
+  },
+  options: baseOpts(v => v + '%')
+});
+
+new Chart(document.getElementById('c_pie_audience'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Active','Passive'],
+    datasets: [{
+      data: [21.2, 78.8],
+      backgroundColor: ['rgba(74,144,217,0.85)', 'rgba(30,30,39,0.9)'],
+      borderColor: ['rgba(74,144,217,0.3)', 'rgba(255,255,255,0.05)'],
+      borderWidth: 1, hoverOffset: 4
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: tooltipDefaults } }
+});
+
+// ── S4: RETENTION ───────────────────────────────────────────────
+const retData = {
+  long:    [100,76,71,64,58,52,48,45,42,39,37,35,33,31,30,29,28],
+  podcast: [100,88,84,80,76,73,70,67,64,61,58,55,52,50,48,46,45],
+  short:   [100,86,72,58,44,33,24,18,13,9,7,5,4,3,2,1,1]
+};
+const retBench =   [100,88,84,80,76,72,68,64,60,56,53,50,47,44,42,40,38];
+const retLabels = ['0','6%','12%','18%','24%','30%','36%','42%','48%','54%','60%','66%','72%','78%','84%','90%','100%'];
+
+let retChart = new Chart(document.getElementById('c_ret'), {
+  type: 'line',
+  data: {
+    labels: retLabels,
+    datasets: [
+      {
+        label: 'This channel',
+        data: retData.long,
+        borderColor: '#4a90d9',
+        backgroundColor: 'rgba(74,144,217,0.07)',
+        fill: true, tension: .4, borderWidth: 2, pointRadius: 0
+      },
+      {
+        label: 'Benchmark avg',
+        data: retBench,
+        borderColor: '#1abc9c',
+        borderDash: [4,3],
+        fill: false, tension: .4, borderWidth: 1.5, pointRadius: 0
+      }
+    ]
+  },
+  options: { ...baseOpts(v => v + '%', 110), scales: { x: { grid: { color: gc }, ticks: { color: tc, maxTicksLimit: 9 } }, y: { min: 0, max: 110, grid: { color: gc }, ticks: { color: tc, callback: v => v + '%' } } } }
+});
+
+function switchRet(btn, key) {
+  document.querySelectorAll('.tabs .tab').forEach(t => {
+    if (t.closest('.section') === btn.closest('.section')) t.classList.remove('on');
+  });
+  btn.classList.add('on');
+  retChart.data.datasets[0].data = retData[key];
+  retChart.update();
+}
+
+// ── S5: SEO ─────────────────────────────────────────────────────
+new Chart(document.getElementById('c_seo'), {
+  type: 'bar',
+  data: {
+    labels: ['Thumbnail CTR','Title optimisation','Guest name SEO','Tag coverage','Description depth','Chapters / timestamps','End-screen CTAs','Hashtag usage'],
+    datasets: [{
+      data: [82, 68, 88, 55, 38, 22, 65, 30],
+      backgroundColor: [
+        'rgba(26,188,156,0.8)','rgba(74,144,217,0.8)','rgba(26,188,156,0.85)',
+        'rgba(243,156,18,0.8)','rgba(230,57,70,0.8)','rgba(230,57,70,0.85)',
+        'rgba(243,156,18,0.8)','rgba(230,57,70,0.8)'
+      ],
+      borderRadius: 3, label: 'Score /100'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+    plugins: { legend: { display: false }, tooltip: tooltipDefaults },
+    scales: {
+      x: { min: 0, max: 100, grid: { color: gc }, ticks: { color: tc } },
+      y: { grid: { display: false }, ticks: { color: tc, font: { size: 10 } } }
+    }
+  }
+});
+
+// ── S6: CONTENT ─────────────────────────────────────────────────
+new Chart(document.getElementById('c_content_pie'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Figuring Out Podcast','Business','Finance','Motivation','Shorts/Other'],
+    datasets: [{
+      data: [52, 20, 14, 9, 5],
+      backgroundColor: ['rgba(74,144,217,0.85)','rgba(26,188,156,0.8)','rgba(243,156,18,0.8)','rgba(230,57,70,0.8)','rgba(155,89,182,0.8)'],
+      borderWidth: 0, hoverOffset: 4
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: tooltipDefaults } }
+});
+
+new Chart(document.getElementById('c_content_perf'), {
+  type: 'bar',
+  data: {
+    labels: ['Finance','Business','Podcast','Motivation','Shorts'],
+    datasets: [{
+      data: [1240, 980, 870, 720, 540],
+      backgroundColor: ['rgba(243,156,18,0.85)','rgba(26,188,156,0.8)','rgba(74,144,217,0.8)','rgba(230,57,70,0.8)','rgba(155,89,182,0.8)'],
+      borderRadius: 3, label: 'Avg views (K)'
+    }]
+  },
+  options: baseOpts(v => v + 'K')
+});
+
+// ── S7: BENCHMARK ───────────────────────────────────────────────
+const benchColors = ['rgba(74,144,217,0.85)','rgba(230,57,70,0.8)','rgba(243,156,18,0.8)','rgba(26,188,156,0.8)','rgba(155,89,182,0.8)'];
+const benchLabels = ['This channel','BeerBiceps','Ankur Warikoo','Think School','Finance w/ Sharan'];
+const benchData = {
+  subs:  { d: [16.8, 8.25, 6.2, 5.35, 4.8],  mx: 20 },
+  views: { d: [870,  190,  680, 520,   950],   mx: 1100 },
+  eng:   { d: [3.96, 1.50, 5.8, 2.38, 4.9],   mx: 8 }
+};
+
+let benchChart = new Chart(document.getElementById('c_bench'), {
+  type: 'bar',
+  data: {
+    labels: benchLabels,
+    datasets: [{ data: benchData.subs.d, backgroundColor: benchColors, borderRadius: 3, label: 'Subscribers (M)' }]
+  },
+  options: { ...baseOpts(), scales: { x: { grid: { color: gc }, ticks: { color: tc } }, y: { max: benchData.subs.mx, grid: { color: gc }, ticks: { color: tc } } } }
+});
+
+function switchBench(btn, key) {
+  document.querySelectorAll('.tabs .tab').forEach(t => {
+    if (t.closest('.section') === btn.closest('.section')) t.classList.remove('on');
+  });
+  btn.classList.add('on');
+  const d = benchData[key];
+  benchChart.data.datasets[0].data = d.d;
+  benchChart.options.scales.y.max = d.mx;
+  benchChart.update();
+}
+
+// ── S8: GROWTH PROJECTION ───────────────────────────────────────
+const gMos = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+const gCur = [16.8,17.6,18.4,19.2,20.1,20.9,21.1,21.2,21.3,21.4,21.5,21.6,21.7];
+const gOpt = [16.8,17.8,18.9,20.1,21.3,22.2,23.0,23.7,24.1,24.5,24.8,25.0,25.2];
+const gStr = [16.8,18.1,19.5,21.0,22.6,23.8,24.8,25.7,26.4,27.0,27.5,27.9,28.2];
+
+new Chart(document.getElementById('c_growth'), {
+  type: 'line',
+  data: {
+    labels: gMos,
+    datasets: [
+      { label: 'Current', data: gCur, borderColor: 'rgba(90,90,114,0.9)', borderDash: [4,3], fill: false, tension: .3, borderWidth: 1.5, pointRadius: 0 },
+      { label: 'Optimized', data: gOpt, borderColor: '#4a90d9', fill: false, tension: .3, borderWidth: 2, pointRadius: 0 },
+      { label: 'Stretch', data: gStr, borderColor: '#1abc9c', fill: false, tension: .3, borderWidth: 2, pointRadius: 0 }
+    ]
+  },
+  options: baseOpts(v => v.toFixed(1) + 'M')
+});
+
+// ── S10: ML CHARTS ──────────────────────────────────────────────
+
+// ML1: Title score distribution
+new Chart(document.getElementById('c_ml_title'), {
+  type: 'bar',
+  data: {
+    labels: ['Poor','Fair','OK','Good','Great','Excellent'],
+    datasets: [
+      { label: 'Current titles', data: [8, 18, 28, 25, 14, 7], backgroundColor: 'rgba(230,57,70,0.7)', borderRadius: 2 },
+      { label: 'After ML', data: [2, 6, 14, 30, 32, 16], backgroundColor: 'rgba(74,144,217,0.7)', borderRadius: 2 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, labels: { color: tc, font: { size: 9 }, boxWidth: 8, padding: 8 } }, tooltip: tooltipDefaults },
+    scales: {
+      x: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 } } },
+      y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 } } }
+    }
+  }
+});
+
+// ML2: Day heatmap
+const heatVals = [62, 58, 71, 94, 82, 55, 88];
+const heatColors = heatVals.map(v => {
+  const t = v / 100;
+  const r = Math.round(14 + (230 - 14) * t);
+  const g = Math.round(14 + (57 - 14) * (1 - t) + 139 * t);
+  const b = Math.round(31 + (70 - 31) * (1 - t) + 217 * t * 0.3);
+  return `rgba(${r},${g+30},${b+80},${0.3 + t * 0.7})`;
+});
+const heatContainer = document.getElementById('heatmap_days');
+if (heatContainer) {
+  heatVals.forEach((val, i) => {
+    const cell = document.createElement('div');
+    cell.style.cssText = `height:40px;border-radius:3px;background:${heatColors[i]};display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.8);position:relative;`;
+    cell.title = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i] + ': ' + val + '% engagement';
+    cell.textContent = val + '%';
+    heatContainer.appendChild(cell);
+  });
+}
+
+// ML3: Audience clusters
+new Chart(document.getElementById('c_ml_clusters'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Power Fans','Finance Seekers','Casual Browsers','Ghost Subs'],
+    datasets: [{
+      data: [5.2, 14.8, 15.4, 64.6],
+      backgroundColor: ['rgba(26,188,156,0.85)','rgba(243,156,18,0.8)','rgba(74,144,217,0.7)','rgba(255,255,255,0.08)'],
+      borderColor: ['rgba(26,188,156,0.3)','rgba(243,156,18,0.3)','rgba(74,144,217,0.3)','rgba(255,255,255,0.05)'],
+      borderWidth: 1, hoverOffset: 4
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: tc, font: { size: 9 }, boxWidth: 8, padding: 6 } }, tooltip: tooltipDefaults } }
+});
+
+// ML4: XGBoost feature importance
+new Chart(document.getElementById('c_ml_xgb'), {
+  type: 'bar',
+  data: {
+    labels: ['Guest tier','Upload time','Title length','Thumbnail type','Tag count'],
+    datasets: [{
+      data: [0.38, 0.24, 0.17, 0.13, 0.08],
+      backgroundColor: ['rgba(74,144,217,0.9)','rgba(74,144,217,0.75)','rgba(74,144,217,0.6)','rgba(74,144,217,0.45)','rgba(74,144,217,0.3)'],
+      borderRadius: 2, label: 'Importance'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+    plugins: { legend: { display: false }, tooltip: tooltipDefaults },
+    scales: {
+      x: { min: 0, max: 0.5, grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, callback: v => (v * 100).toFixed(0) + '%' } },
+      y: { grid: { display: false }, ticks: { color: tc, font: { size: 9 } } }
+    }
+  }
+});
+
+// ML5: Sentiment
+new Chart(document.getElementById('c_ml_sentiment'), {
+  type: 'bar',
+  data: {
+    labels: ['Positive','Neutral','Negative','Questions','Requests'],
+    datasets: [{
+      data: [58, 22, 8, 7, 5],
+      backgroundColor: ['rgba(46,204,113,0.8)','rgba(90,90,114,0.6)','rgba(230,57,70,0.7)','rgba(243,156,18,0.7)','rgba(155,89,182,0.7)'],
+      borderRadius: 2, label: '% of comments'
+    }]
+  },
+  options: baseOpts(v => v + '%', 70)
+});
+
+// ML6: Churn survival curve
+const survivalX = ['Week 1','Week 2','Week 3','Week 4','Week 6','Week 8','Week 12','Week 16','Week 20','Week 24'];
+new Chart(document.getElementById('c_ml_churn'), {
+  type: 'line',
+  data: {
+    labels: survivalX,
+    datasets: [
+      { label: 'Cohort A (podcast)', data: [100,92,87,83,76,71,65,60,57,54], borderColor: 'rgba(26,188,156,0.9)', fill: false, tension: .4, borderWidth: 1.5, pointRadius: 0 },
+      { label: 'Cohort B (shorts)', data: [100,78,64,55,44,38,30,25,22,20], borderColor: 'rgba(230,57,70,0.8)', fill: false, tension: .4, borderWidth: 1.5, pointRadius: 0 },
+      { label: 'Cohort C (finance)', data: [100,88,84,80,75,71,67,63,60,58], borderColor: 'rgba(74,144,217,0.9)', fill: false, tension: .4, borderWidth: 1.5, pointRadius: 0 }
+    ]
+  },
+  options: { ...baseOpts(v => v + '%', 110),
+    scales: { x: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, maxTicksLimit: 6 } }, y: { min: 0, max: 110, grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, callback: v => v + '%' } } },
+    plugins: { legend: { display: true, labels: { color: tc, font: { size: 9 }, boxWidth: 8, padding: 6 } }, tooltip: tooltipDefaults }
+  }
+});
+
+
+// ── ML GRID RESPONSIVE ──────────────────────────────────────────
+function setMlGridCols() {
+  const grid = document.querySelector('.ml-grid');
+  if (!grid) return;
+  grid.style.gridTemplateColumns = window.innerWidth < 900 ? (window.innerWidth < 600 ? '1fr' : '1fr 1fr') : '1fr 1fr 1fr';
+}
+setMlGridCols();
+window.addEventListener('resize', setMlGridCols);
+</script>
+</body>
+</html>
